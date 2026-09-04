@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg: 15, 20, 45;
+    --color-surface: 25, 30, 65;
+    --color-surface-2: 35, 45, 80;
+    --color-primary: 0, 200, 255;
+    --color-primary-hover: 0, 220, 255;
+    --color-accent: 138, 43, 226;
+    --color-accent-2: 100, 149, 237;
+    --color-text-primary: 240, 240, 255;
+    --color-text-secondary: 180, 180, 220;
+    --color-border: 60, 70, 100;
+    --color-border-hover: 80, 90, 130;
+    --color-success: 74, 222, 128;
+    --color-danger: 248, 113, 113;
+    --color-warning: 253, 211, 37;
+    --color-glow: 0, 200, 255;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0f1f;
+    overflow-x: hidden;
+    color: rgb(var(--color-text-primary));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+  .glass-card {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl;
+  }
+  .glow-text {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400;
+    font-weight: 700;
+  }
+  .glow-border {
+    @apply border border-cyan-400/30;
+    box-shadow: 0 0 20px rgba(0, 200, 255, 0.2);
+  }
+}

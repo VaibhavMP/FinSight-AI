@@ -1,0 +1,4 @@
+CREATE DATABASE IF NOT EXISTS finsight CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'finsight'@'%' IDENTIFIED BY 'finsight123';
+GRANT ALL PRIVILEGES ON finsight.* TO 'finsight'@'%';
+FLUSH PRIVILEGES;
