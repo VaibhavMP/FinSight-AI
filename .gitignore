@@ -28,6 +28,10 @@ backend/.env.*
 backend/chroma_db/
 backend/uploaded_files/
 backend/test_finsight.db
+backend/finsight_dev.db
+*.db
+*.sqlite
+*.sqlite3
 backend/instance/
 
 # Frontend

@@ -50,9 +50,13 @@ class Settings(BaseSettings):
     mysql_user: str = "finsight"
     mysql_password: str = "finsight"
     mysql_database: str = "finsight"
+    # If set, this overrides the MySQL URL entirely (useful for SQLite in dev)
+    database_url: str = ""
 
     @property
-    def database_url(self) -> str:
+    def database_url_resolved(self) -> str:
+        if self.database_url:
+            return self.database_url
         return (
             f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}"
             f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_database}"

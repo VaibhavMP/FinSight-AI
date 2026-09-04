@@ -230,10 +230,11 @@ ANSWER:"""
         reasoning_steps: List[str] = []
 
         # Step 1: Classify the query
-        mode = QueryMode.rag
-        if document_ids:
-            from app.rag.query_classifier import classify_query
-            mode = classify_query(query, has_documents=True)
+        from app.rag.query_classifier import classify_query
+        mode = classify_query(query, has_documents=bool(document_ids))
+
+        if mode == QueryMode.casual and not document_ids:
+            mode = QueryMode.casual
 
         reasoning_steps.append(f"Query mode: {mode.value}")
 
@@ -249,7 +250,7 @@ ANSWER:"""
 
         # Step 3: Retrieve
         context_docs: List[Document] = []
-        if mode in (QueryMode.rag, QueryMode.analysis, QueryMode.risk, QueryMode.metrics):
+        if mode in (QueryMode.rag, QueryMode.analysis, QueryMode.comparison, QueryMode.risk, QueryMode.metrics):
             if document_ids:
                 reasoning_steps.append("Retrieving from financial documents...")
                 context_docs = self.retrieve(effective_query, document_ids, k=settings.k_retrieved_documents)
@@ -269,7 +270,7 @@ ANSWER:"""
 
         # Step 5: Financial analysis if needed
         metrics = []
-        if mode in (QueryMode.analysis, QueryMode.metrics):
+        if self.llm is not None and mode in (QueryMode.analysis, QueryMode.metrics):
             from app.financial.analyzer import FinancialAnalyzer
             analyzer = FinancialAnalyzer(self.llm)
             context_text = "\n\n".join(d.page_content for d in context_docs)
@@ -281,7 +282,7 @@ ANSWER:"""
             reasoning_steps.append(f"Extracted {len(metrics)} financial metrics")
 
         # Step 6: Risk extraction
-        if mode == QueryMode.risk:
+        if self.llm is not None and mode == QueryMode.risk:
             from app.financial.analyzer import RiskExtractor
             extractor = RiskExtractor(self.llm)
             context_text = "\n\n".join(d.page_content for d in context_docs)
