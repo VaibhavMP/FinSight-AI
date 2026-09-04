@@ -56,8 +56,13 @@ class RAGService:
                 )
                 self._llm = cohere_llm.get_llm()
             else:
-                # Fallback to a simple response when no API key is configured
-                self._llm = None
+                # Fallback to local LLM when no API key is configured
+                local_llm = LLMFactory.create_llm(
+                    "local",
+                    model_name="gpt2",
+                    max_new_tokens=128,
+                )
+                self._llm = local_llm
         return self._llm
 
     @property

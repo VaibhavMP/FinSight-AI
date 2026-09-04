@@ -11,26 +11,41 @@
 
 ## 🚀 Quick Start
 
+### Local (No API Keys Required)
+
+FinSight AI works out-of-the-box locally **without any external API keys**. When no
+`COHERE_API_KEY` is set, the platform automatically falls back to a local HuggingFace
+GPT-2 model for generation and `all-mpnet-base-v2` for embeddings.
+
 ```bash
 # Clone the repository
 git clone https://github.com/VaibhavMP/FinSight-AI.git
 cd FinSight-AI
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your API keys and database credentials
+# No .env needed for local-first mode — just run:
+cd backend
+pip install -r requirements.txt
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
 
-# Run with Docker (recommended)
-docker compose up --build
-
-# Or run locally:
-cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload
-cd ../frontend && npm install && npm run dev
+cd ../frontend
+npm install --legacy-peer-deps
+npm run dev
 ```
 
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
+
+> First GPT-2 invocation may take 30–60 s on CPU (model is cached after first load).
+> For production-quality, fast responses, set `COHERE_API_KEY` in `.env`.
+
+### Docker (Recommended for Production)
+
+```bash
+cp .env.example .env
+# Edit .env with your API keys and database credentials
+docker compose up --build
+```
 
 ---
 
@@ -41,6 +56,7 @@ cd ../frontend && npm install && npm run dev
 - [Architecture](#-architecture)
 - [Features](#-features)
 - [Technology Stack](#-technology-stack)
+- [Local Development](#-local-development)
 - [RAG Pipeline](#-rag-pipeline)
 - [Agent Architecture](#-agent-architecture)
 - [Financial Analysis](#-financial-analysis)
@@ -151,8 +167,8 @@ them naturally using an AI financial research agent.
 | Memory | ConversationBufferMemory | Conversational context retention |
 | Router | Query Classification | Routes queries to appropriate mode |
 | Retrieval | Chroma, MMR | Vector similarity search |
-| Embeddings | Cohere / HuggingFace | Text embeddings |
-| Generation | Cohere / ChatCohere | LLM response generation |
+| Embeddings | Cohere `embed-english-v3-0` or HuggingFace `all-mpnet-base-v2` | Text embeddings |
+| Generation | Cohere `ChatCohere` or local `GPT-2` via HuggingFacePipeline | LLM response generation |
 | Storage | MySQL, Chroma | Structured data + vectors |
 
 ---
@@ -225,6 +241,44 @@ them naturally using an AI financial research agent.
 | Docker | Containerization |
 | Docker Compose | Orchestration |
 
+### LLM Providers
+| Provider | Default | Notes |
+|---------|---------|-------|
+| Cohere (cloud) | Production | Fast, high-quality responses. Requires `COHERE_API_KEY` |
+| HuggingFace GPT-2 | Local fallback | Runs on CPU, no API key needed. Slower (~30–60 s/response) |
+
+---
+
+## 🏠 Local Development
+
+### Running Without API Keys
+
+FinSight AI can run entirely locally without Cohere or OpenAI API keys. In this mode:
+
+- **LLM**: HuggingFace GPT-2 (`gpt2`) via `HuggingFacePipeline` — CPU-only, first call ~30–60 s
+- **Embeddings**: HuggingFace `all-mpnet-base-v2`
+- **Database**: SQLite fallback (`finsight_dev.db`) when MySQL is unavailable
+- **Vector Store**: ChromaDB (local, persists to `backend/chroma_db/`)
+
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Frontend (separate terminal)
+cd ../frontend
+npm install --legacy-peer-deps
+npm run dev
+```
+
+Then run the end-to-end test:
+
+```bash
+cd ../backend
+python test_e2e.py
+```
+
 ---
 
 ## 🔬 RAG Pipeline
@@ -242,20 +296,20 @@ Chunking (RecursiveCharacterTextSplitter)
        ↓
 Metadata Enrichment (document_id, filename, company, page, section)
        ↓
-Embeddings (Cohere / HuggingFace)
-       ↓
+Embeddings (Cohere / HuggingFace all-mpnet-base-v2)
+        ↓
 Chroma Vector Store
-       ↓
+        ↓
 Query Reformulation (if follow-up)
-       ↓
+        ↓
 MMR Retriever
-       ↓
+        ↓
 Relevant Context
-       ↓
-LLM (ChatCohere)
-       ↓
+        ↓
+LLM (ChatCohere / local GPT-2)
+        ↓
 Grounded Answer
-       ↓
+        ↓
 Citations
 ```
 
@@ -406,8 +460,7 @@ is stored in MySQL.
 
 - Python 3.12+
 - Node.js 20+
-- MySQL 8.0+
-- Cohere API key (for LLM and embeddings)
+- Cohere API key (optional — local GPT-2 fallback works without it)
 
 ### Backend Setup
 
@@ -418,6 +471,9 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
+
+> No `.env` file required — the app auto-detects missing API keys and falls back
+> to local HuggingFace models and SQLite.
 
 ### Frontend Setup
 
@@ -439,14 +495,14 @@ cp .env.example .env
 
 | Variable | Description |
 |----------|-------------|
-| `MYSQL_HOST` | MySQL host (default: `localhost`) |
+| `MYSQL_HOST` | MySQL host (default: `localhost`) — set to empty to use SQLite |
 | `MYSQL_PORT` | MySQL port (default: `3306`) |
 | `MYSQL_USER` | MySQL user (default: `finsight`) |
 | `MYSQL_PASSWORD` | MySQL password |
 | `MYSQL_DATABASE` | MySQL database name |
 | `JWT_SECRET_KEY` | Secret key for JWT signing |
-| `COHERE_API_KEY` | Cohere API key for LLM + embeddings |
-| `LLM_PROVIDER` | LLM provider (default: `cohere`) |
+| `COHERE_API_KEY` | **Optional** — Cohere API key for LLM + embeddings. Falls back to local GPT-2 |
+| `LLM_PROVIDER` | `cohere` or `local` (auto-detected if `COHERE_API_KEY` not set) |
 | `LLM_MODEL` | LLM model name |
 | `EMBEDDING_PROVIDER` | Embedding provider |
 | `CHROMA_PERSIST_DIRECTORY` | Chroma DB persistence path |
@@ -480,19 +536,29 @@ Services:
 
 ```bash
 cd backend
-pip install pytest
-python -m pytest tests/ -v
+python -m pytest tests/ -q
 ```
 
-Test coverage:
-- Authentication (register, login, protected routes, password hashing)
-- Database connections (MySQL/SQLite test)
-- Document upload (PDF, unsupported types, auth)
-- Document processing pipeline
-- Query classification (all modes)
-- Chat endpoint (casual, RAG, conversations)
-- Conversation management
-- Health checks
+**31 tests passing** covering authentication, documents, chat routing, and query
+classification.
+
+### End-to-End Test
+
+```bash
+cd backend
+python test_e2e.py
+```
+
+Validates the full stack: login → upload → process → chat:
+
+| Step | Result |
+|------|--------|
+| Login | OK |
+| Upload | Document indexed |
+| Process | Chunks embedded & stored in Chroma |
+| Casual chat | GPT-2 response generated |
+| RAG chat | Retrieved context with citations |
+| Risk chat | Risk classification (graceful fallback) |
 
 Frontend build verification:
 ```bash
@@ -541,3 +607,5 @@ See [LICENSE](LICENSE) for the MIT license with attribution.
 - Export to Excel/PDF reports
 - Multi-user collaboration
 - Advanced financial modeling
+
+---

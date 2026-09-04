@@ -12,5 +12,8 @@ class LLMFactory:
             assert "cohere_api_key" in kwargs, "Please pass `cohere_api_key` argument"
             from app.llms.cohere_llm import CohereLLM
             return CohereLLM(**kwargs)
+        elif llm_type.lower() == "local":
+            from app.llms.local_llm import LocalLLM
+            return LocalLLM(**kwargs)
         else:
             raise ValueError(f"Unsupported LLM type: {llm_type}")
