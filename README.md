@@ -90,8 +90,8 @@ interact with them naturally using an AI financial research agent. The agent:
 5. Extracts financial metrics and classifies risks
 
 This project is a transformation of the open-source
-[AgenticRAG](https://github.com/MohammedAly22/AgenticRAG) project,
-rebuilt as a full-stack financial intelligence platform with React frontend,
+AgenticRAG project,
+built as a full-stack financial intelligence platform with React frontend,
 FastAPI backend, and MySQL database.
 
 ---
@@ -575,28 +575,6 @@ npm run build
 > Users should independently verify any results and consult qualified professionals
 > before making decisions. The platform extracts information from user-uploaded
 > documents and does not fabricate financial figures.
-
----
-
-## 🙏 Credits & Attribution
-
-This project is built upon and extends the
-[AgenticRAG](https://github.com/MohammedAly22/AgenticRAG) open-source project
-by **Mohammed Aly22**. The following components were migrated from AgenticRAG
-with significant enhancements for financial domain analysis:
-
-- RAG agent architecture (ReAct-style with tool calling)
-- Conversational memory (ConversationBufferMemory)
-- Query reformulation pipeline
-- Chroma vector database integration
-- Cohere LLM and embedding integration
-- Document chunking (RecursiveCharacterTextSplitter)
-- PDF loading (PyMuPDFLoader)
-- Rate-limited batch embedding processing
-
-See [LICENSE](LICENSE) for the MIT license with attribution.
-
----
 
 ## 🗺 Future Enhancements
 
