@@ -54,13 +54,10 @@ class Settings(BaseSettings):
     database_url: str = ""
 
     @property
-    def database_url_resolved(self) -> str:
-        if self.database_url:
-            return self.database_url
-        return (
-            f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}"
-            f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_database}"
-        )
+def database_url_resolved(self) -> str:
+    if self.database_url:
+        return self.database_url
+    return "sqlite:///./finsight.db"
 
     # JWT
     jwt_secret_key: str = "change-me-in-production"
